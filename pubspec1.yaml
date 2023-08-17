@@ -1,0 +1,31 @@
+name: dating_demo_flutter
+description: A new Flutter project.
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.5 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.5
+  swipable_stack: ^2.0.0
+  get: ^4.6.5
+  sqflite: ^2.2.8+4
+  path_provider: ^2.0.15
+  json_annotation: ^4.8.1
+
+dev_dependencies:
+  build_runner: ^2.4.5
+  json_serializable: ^6.7.0
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^2.0.1
+
+flutter:
+  uses-material-design: true
+
+ 
