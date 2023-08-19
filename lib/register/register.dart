@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_login/login/login.dart';
 import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -30,6 +31,23 @@ class _registerState extends State<register> {
         'password': password.text,
         'email': email.text,
       });
+
+      final saveUsernameResponse =
+          await http.post(Uri.parse(saveUsernameUrl), body: {
+        'name': name.text,
+      });
+
+      if (saveUsernameResponse.statusCode == 200) {
+        var saveData = json.decode(saveUsernameResponse.body);
+        if (saveData == "Username Saved") {
+          print("Username saved successfully");
+        } else {
+          print("Error saving username");
+        }
+      } else {
+        print(
+            "Server returned status code: ${saveUsernameResponse.statusCode}");
+      }
 
       if (response.statusCode == 200) {
         var data = json.decode(response.body);
@@ -179,6 +197,11 @@ class _registerState extends State<register> {
                         bool password = formKey.currentState!.validate();
                         if (password) {
                           sign_up();
+                          // After signing up, redirect to the login page
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => login()),
+                          );
                         }
                       },
                       child: const Text(

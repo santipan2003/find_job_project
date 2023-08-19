@@ -21,6 +21,22 @@ class _InternshipScreenState extends State<InternshipScreen> {
     _fetchTalents();
   }
 
+  Future<void> _saveTalent(String talent) async {
+    final response = await http.post(
+      Uri.parse("http://192.168.56.1/flutter_login/save_talent.php"),
+      body: {
+        'talent': talent,
+      },
+    );
+
+    if (response.statusCode == 200) {
+      print("Successfully saved talent: $talent");
+    } else {
+      print(
+          "Failed to save talent: $talent. Status code: ${response.statusCode}");
+    }
+  }
+
   Future<void> _fetchTalents() async {
     final response = await http
         .get(Uri.parse("http://192.168.56.1/flutter_login/talent.php"));
@@ -60,6 +76,7 @@ class _InternshipScreenState extends State<InternshipScreen> {
   void _addTalent(String talent) {
     if (!_selectedTalents.contains(talent) && _selectedTalents.length < 5) {
       setState(() {
+        _saveTalent(talent);
         _selectedTalents.add(talent);
         _autocompleteController.text = talent; // ตั้งค่าใหม่สำหรับ controller
       });
@@ -290,10 +307,9 @@ class _AutocompleteTextFieldState extends State<AutocompleteTextField> {
                 Navigator.pop(context);
               },
             );
-          },  
+          },
         );
       },
     );
   }
 }
-

@@ -10,17 +10,32 @@ class HomeScreenController extends GetxController {
   late UserRepository _repository;
   RxList<UserModel> items = RxList();
   RxList<UserModel> localList = RxList();
-  RxString userName = "".obs;
+  var userName = "Loading...".obs;
+  
 
   @override
   void onInit() {
     stackController = SwipableStackController();
     _repository = UserRepository();
+     fetchUserName();
     loadItems();
     super.onInit();
   }
 
-  
+  Future<void> fetchUserName() async {
+    try {
+      final response = await http.get(Uri.parse('http://192.168.56.1/flutter_login/user_info.php'));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        userName.value = data["name"] ?? "Not Found";
+      } else {
+        userName.value = "Error fetching name";
+      }
+    } catch (e) {
+      userName.value = "Error: $e";
+    }
+  }
+
   addDataToLocalDb(UserModel model) {
     _repository.createUser(model);
   }
@@ -37,6 +52,7 @@ class HomeScreenController extends GetxController {
 
     if (response.statusCode == 200) {
       var jsonResponse = jsonDecode(response.body);
+      print(response.body);
 
       if (jsonResponse['success'] == 1) {
         List<UserModel> loadedItems = [];

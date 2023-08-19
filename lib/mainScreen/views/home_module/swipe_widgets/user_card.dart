@@ -1,7 +1,7 @@
 import 'dart:ui';
-
+import 'package:get/get.dart';
 import 'package:flutter/material.dart';
-
+import 'package:flutter_login/mainScreen/views/home_module/etn_profile_screen.dart';
 import 'bottom_button.dart';
 
 class ExampleCard extends StatelessWidget {
@@ -79,45 +79,65 @@ class ExampleCard extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.end,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                  Row(
-                    children: [
-                      Expanded(
-                     child: Column(
-                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                            "$name, $age",
-                            style:const TextStyle(fontSize: 25,
-                                fontWeight: FontWeight.w500,color: Colors.white)
-                        ),
-                        const SizedBox(height: 5,),
-                        Text(title,
-                            style:const TextStyle(fontSize: 17,
-                                fontWeight: FontWeight.w400,color: Colors.white)
-                        ),
-                      ],
-                  ),
-                   ),
-                      Container(
-                        padding: const EdgeInsets.all(5),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(25)
-
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(Icons.location_pin),
-                            Text(location,
-                                style: TextStyle(fontSize: 15,
-                                    fontWeight: FontWeight.w400,color: Colors.black.withOpacity(0.7))
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                GestureDetector(
+                                  onTap: () {
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (context) => EtnScreen(
+                                          name: name,
+                                          assetPath: assetPath,
+                                          age: age,
+                                          title: title,
+                                          location: location,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  child: Text(
+                                    "$name, $age",
+                                    style: const TextStyle(
+                                        fontSize: 25,
+                                        fontWeight: FontWeight.w500,
+                                        color: Colors.white),
+                                  ),
+                                ),
+                                const SizedBox(
+                                  height: 5,
+                                ),
+                                Text(
+                                  title,
+                                  style: const TextStyle(
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.w400,
+                                      color: Colors.white),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                      )
-
-                    ],
-                  ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.all(5),
+                            decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(25)),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.location_pin),
+                                Text(location,
+                                    style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w400,
+                                        color: Colors.black.withOpacity(0.7))),
+                              ],
+                            ),
+                          )
+                        ],
+                      ),
                       const SizedBox(height: BottomButtonsRow.height)
                     ],
                   ),

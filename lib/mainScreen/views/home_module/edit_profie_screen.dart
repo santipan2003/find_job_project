@@ -27,32 +27,51 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   // กำหนดตัวแปรสำหรับเก็บ Future
   late Future<List<String>> _universitiesFuture;
   late Future<List<String>> _typeOfWorksFuture;
-  late Future<String?> _usernameFuture;
 
   Future<String> fetchSelectedUniversity() async {
-    final response = await http.get(Uri.parse(
-        'http://192.168.56.1/flutter_login/fetch_selected_university.php'));
+    final response = await http
+        .get(Uri.parse('http://192.168.56.1/flutter_login/user_info.php'));
     if (response.statusCode == 200) {
       Map<String, dynamic> jsonResponse = json.decode(response.body);
-      return jsonResponse["selected"];
+      return jsonResponse["university"];
     } else {
       throw Exception('Failed to load selected university');
     }
   }
 
   Future<String?> fetchLastAddedTypeOfWork() async {
-    final response = await http.get(Uri.parse(
-        'http://192.168.56.1/flutter_login/fetch_selected_typelist.php'));
+    final response = await http
+        .get(Uri.parse('http://192.168.56.1/flutter_login/user_info.php'));
     if (response.statusCode == 200) {
       try {
         Map<String, dynamic> jsonResponse = json.decode(response.body);
-        if (jsonResponse.containsKey("item")) {
-          return jsonResponse["item"];
+        if (jsonResponse.containsKey("type")) {
+          return jsonResponse["type"];
         } else if (jsonResponse.containsKey("error")) {
           print("Error from server: ${jsonResponse["error"]}");
         }
       } catch (e) {
         print("Error decoding JSON: $e");
+      }
+    }
+    return null;
+  }
+
+  Future<String?> fetchUsernameFromServer() async {
+    final response = await http
+        .get(Uri.parse('http://192.168.56.1/flutter_login/user_info.php'));
+    if (response.statusCode == 200) {
+      try {
+        Map<String, dynamic> jsonResponse = json.decode(response.body);
+        print("Received JSON: $jsonResponse"); // debug statement
+        if (jsonResponse.containsKey("error")) {
+          print("Error: ${jsonResponse["error"]}");
+        } else if (jsonResponse.containsKey("name")) {
+          return jsonResponse["name"];
+        }
+      } catch (e) {
+        print("Error decoding JSON: $e");
+        print("Raw response: ${response.body}");
       }
     }
     return null;
@@ -73,7 +92,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         }
       });
     });
-    _usernameFuture = fetchUsername();
+    fetchUsernameFromServer().then((username) {
+      if (username != null) {
+        setState(() {
+          _selectedUsername = username;
+        });
+      }
+    });
     _universitiesFuture = fetchUniversities();
     _typeOfWorksFuture = fetchTypeOfWorks();
   }
@@ -83,12 +108,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       _selectedUniversity = await fetchSelectedUniversity();
       String? typeOfWork = await fetchLastAddedTypeOfWork();
       if (typeOfWork != null) _selectedTypeOfWork = typeOfWork;
-      _selectedUsername = await fetchUsername();
       setState(() {});
     } catch (e) {
       print('Error initializing data: $e');
     }
-
     _universitiesFuture = fetchUniversities();
     _typeOfWorksFuture = fetchTypeOfWorks();
   }
@@ -114,15 +137,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Future<String?> fetchUsername() async {
-    final response = await http
-        .get(Uri.parse('http://192.168.56.1/flutter_login/save_username.php'));
-    if (response.statusCode == 200) {
-      Map<String, dynamic> jsonResponse = json.decode(response.body);
-      if (jsonResponse.containsKey("name")) {
-        return jsonResponse["name"];
-      }
-    }
-    return null;
+    // Add your logic here
+    return null; // Sample return value, replace with actual implementation
   }
 
   @override
@@ -156,8 +172,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 // Input สำหรับ Username
                 TextField(
                   controller: _usernameController,
+                  onChanged: (text) {
+                    setState(() {
+                      _selectedUsername = text;
+                    });
+                  },
                   decoration: InputDecoration(
-                    labelText: 'Username',
+                    labelText: _selectedUsername != null &&
+                            _selectedUsername!.isNotEmpty
+                        ? _selectedUsername
+                        : null,
+                    hintText: 'Username',
+                    hintStyle: TextStyle(fontWeight: FontWeight.bold),
                     border: OutlineInputBorder(),
                   ),
                 ),
@@ -205,7 +231,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ),
                 SizedBox(height: 32),
                 ElevatedButton(
-                  onPressed: _saveProfile,
+                  onPressed: (_selectedUsername != null &&
+                          _selectedTypeOfWork != null &&
+                          _selectedUniversity != null)
+                      ? () {
+                          Navigator.pop(context, {
+                            'name': _selectedUsername!,
+                            'university': _selectedUniversity!,
+                            'type': _selectedTypeOfWork!,
+                          });
+                        }
+                      : null, // this will disable the button if any of the fields are null
                   child: Text('Save'),
                 ),
               ],
@@ -216,10 +252,29 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  void _saveProfile() {
-    // โค้ดสำหรับการบันทึกข้อมูล
-    print('Username: ${_usernameController.text}');
-    print('Selected University: $_selectedUniversity');
-    print('Selected Type of Work: $_selectedTypeOfWork');
+  void _saveProfile() async {
+    final response = await http.post(
+      Uri.parse('http://192.168.56.1/flutter_login/user_info.php'),
+      body: {
+        'name': _selectedUsername,
+        'type': _selectedTypeOfWork,
+        'university': _selectedUniversity,
+      },
+    );
+
+    if (response.statusCode == 200) {
+      Map<String, dynamic> jsonResponse = json.decode(response.body);
+      if (jsonResponse.containsKey("error_user_info")) {
+        print("Error updating profile: ${jsonResponse["error_user_info"]}");
+      } else {
+        Navigator.pushReplacement(
+          // using pushReplacement to replace current screen
+          context,
+          MaterialPageRoute(builder: (context) => ProfileScreen()),
+        );
+      }
+    } else {
+      print('Failed to save profile. Status code: ${response.statusCode}');
+    }
   }
 }
