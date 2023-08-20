@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_login/login/login.dart';
 import 'package:flutter_login/mainScreen/views/home_module/profile_screen.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -75,6 +76,27 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       }
     }
     return null;
+  }
+
+  Future<bool> _deleteProfile() async {
+    final response = await http.post(
+      Uri.parse('http://192.168.56.1/flutter_login/user_info.php'),
+      body: {
+        'delete': 'true',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      Map<String, dynamic> jsonResponse = json.decode(response.body);
+      if (jsonResponse.containsKey("success")) {
+        return true;
+      } else {
+        print("Error deleting profile: ${jsonResponse["error_delete"]}");
+      }
+    } else {
+      print('Failed to delete profile. Status code: ${response.statusCode}');
+    }
+    return false;
   }
 
   @override
@@ -243,6 +265,54 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         }
                       : null, // this will disable the button if any of the fields are null
                   child: Text('Save'),
+                ),
+                SizedBox(height: 0),
+                SizedBox(
+                    height:
+                        16), // เพิ่ม spacing ระหว่างปุ่ม Save และ Delete Profile
+                ElevatedButton(
+                  onPressed: () {
+                    // แสดง AlertDialog
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: Text('Delete Account'),
+                          content: Text('คุณจะลบ Account จริงหรือไม่?'),
+                          actions: [
+                            TextButton(
+                              child: Text('No'),
+                              onPressed: () {
+                                // ปิด dialog เมื่อผู้ใช้กดปุ่ม No
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                            TextButton(
+                              child: Text('Yes'),
+                              onPressed: () async {
+                                bool isDeleted = await _deleteProfile();
+                                if (isDeleted) {
+                                  // Navigate to the login screen after successful deletion.
+                                  // Make sure you've imported the login screen at the top.
+                                  Navigator.pushReplacement(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) => login()));
+                                } else {
+                                  // You can show a message to the user or handle the error in other ways.
+                                }
+                              },
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
+                  child: Text('Delete Profile'),
+                  style: ElevatedButton.styleFrom(
+                    primary: Colors
+                        .red, // เปลี่ยนสีปุ่มเป็นสีแดงเพื่อเตือนความระมัดระวัง
+                  ),
                 ),
               ],
             );

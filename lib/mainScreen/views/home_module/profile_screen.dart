@@ -208,7 +208,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         });
                       }
                     },
-                    child: Text('Edit Profile'),
+                    child: Text('Setting Profile'),
                     style: ElevatedButton.styleFrom(
                       primary: Colors.blue,
                       onPrimary: Colors.white,
