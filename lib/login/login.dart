@@ -1,6 +1,7 @@
 // ignore_for_file: prefer_const_constructors, non_constant_identifier_names
 
 import 'package:flutter/material.dart';
+import 'package:flutter_login/api.dart';
 import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -21,7 +22,7 @@ class _loginState extends State<login> {
   TextEditingController email = TextEditingController();
 
   Future<void> sign_in() async {
-    String url = "http://192.168.56.1/flutter_login/login.php";
+    String url = "$apiEndpoint/login.php";
 
     try {
       final response = await http.post(Uri.parse(url), body: {
@@ -48,118 +49,132 @@ class _loginState extends State<login> {
     }
   }
 
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFF5F5F5),
+      backgroundColor: Colors.white,
       body: Center(
         child: Form(
           key: formKey,
           child: ListView(
+            padding: EdgeInsets.symmetric(horizontal: 20.0),
             shrinkWrap: true,
             children: [
-              Column(
+              SizedBox(height: 60),
+              Center(
+                child: Image.network(
+                  'https://img.imgbiz.com/file/imgbiz2/logo14.png',
+                  height: 350,
+                ), // Adjust the image size as required
+              ),
+              SizedBox(height: 60),
+              _buildTextField(
+                controller: email,
+                hint: 'Phone number, email or username',
+                icon: Icons.email_outlined,
+              ),
+              SizedBox(height: 20),
+              _buildTextField(
+                controller: password,
+                hint: 'Password',
+                icon: Icons.lock_outline,
+                isPassword: true,
+              ),
+              SizedBox(height: 20),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  primary: Colors.black,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  padding: EdgeInsets.symmetric(vertical: 15),
+                ),
+                onPressed: () {
+                  bool valid = formKey.currentState!.validate();
+                  if (valid) {
+                    sign_in();
+                  }
+                },
+                child: const Text(
+                  'Log In',
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              SizedBox(height: 10),
+              Center(
+                child: TextButton(
+                  onPressed: () {}, // TODO: Implement Forgot password function
+                  child: Text(
+                    'Forgot password?',
+                    style: TextStyle(
+                      color: Colors.blue,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: 0),
+              Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Text(
-                    '',
-                    style: TextStyle(fontSize: 50, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(
-                    height: 20,
-                  ),
-                  Text(
-                    '',
-                    style: TextStyle(fontSize: 20),
-                  ),
-                  Text(
-                    '',
-                    style: TextStyle(fontSize: 20),
-                  ),
-                  SizedBox(
-                    height: 30,
-                  ),
-                  Image.asset('assets/logo11.png'),
-                  SizedBox(
-                    height: 20,
-                  ),
-                  SizedBox(
-                    width: 350,
-                    child: TextFormField(
-                      obscureText: false,
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(),
-                        labelText: 'Email or Username',
-                      ),
-                      validator: (val) {
-                        if (val!.isEmpty) {
-                          return 'Empty';
-                        }
-                        return null;
-                      },
-                      controller: email,
-                    ),
-                  ),
-                  SizedBox(
-                    height: 20,
-                  ),
-                  SizedBox(
-                    width: 350,
-                    child: TextFormField(
-                      obscureText: true,
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(),
-                        labelText: 'Password',
-                      ),
-                      validator: (val) {
-                        if (val!.isEmpty) {
-                          return 'Empty';
-                        }
-                        return null;
-                      },
-                      controller: password,
-                    ),
-                  ),
-                  SizedBox(
-                    height: 20,
-                  ),
-                  SizedBox(
-                    width: 350,
-                    height: 60,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                          primary: const Color(0xFF3F60A0),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(15))),
-                      onPressed: () {
-                        bool password = formKey.currentState!.validate();
-                        if (password) {
-                          sign_in();
-                        }
-                      },
-                      child: const Text(
-                        'Sign in',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
+                children: [
+                  Text("Don't have an account? "),
                   TextButton(
-                    style: TextButton.styleFrom(
-                      textStyle: const TextStyle(fontSize: 15),
-                    ),
                     onPressed: () {
                       Navigator.pushNamed(context, 'register');
                     },
-                    child: const Text("Didn't have any Account? Sign Up now"),
+                    child: Text(
+                      'Sign up',
+                      style: TextStyle(
+                        color: Colors.blue,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ],
               ),
             ],
           ),
         ),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      ),
+    );
+  }
+
+  // Helper function for TextFormFields
+  Widget _buildTextField(
+      {required TextEditingController controller,
+      required String hint,
+      required IconData icon,
+      bool isPassword = false}) {
+    return TextFormField(
+      style: TextStyle(color: Colors.black),
+      controller: controller,
+      obscureText: isPassword,
+      decoration: InputDecoration(
+        prefixIcon: Icon(
+          icon,
+          color: Colors.grey,
+        ),
+        hintText: hint,
+        hintStyle: TextStyle(color: Colors.grey),
+        filled: true,
+        fillColor: Colors.grey[100],
+        contentPadding: EdgeInsets.all(15),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(5),
+          borderSide: BorderSide.none,
+        ),
+      ),
+      validator: (val) {
+        if (val!.isEmpty) {
+          return 'This field cannot be empty';
+        }
+        return null;
+      },
     );
   }
 }

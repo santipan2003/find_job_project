@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_login/api.dart';
 import 'package:flutter_login/mainScreen/views/home_module/bottom_nav_bar.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -14,7 +15,7 @@ class _TypeListScreenState extends State<TypeListScreen> {
   String _selectedItem = '';
   Future<List<String>> fetchTypeList() async {
     final response = await http
-        .get(Uri.parse('http://192.168.56.1/flutter_login/typelist.php'));
+        .get(Uri.parse('$apiEndpoint/typelist.php'));
 
     if (response.statusCode == 200) {
       return List<String>.from(json.decode(response.body));
@@ -26,65 +27,80 @@ class _TypeListScreenState extends State<TypeListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: FutureBuilder<List<String>>(
-        future: fetchTypeList(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(child: Text('No data found'));
-          } else {
-            return Form(
-              //key: _formKey,
-              // Uncomment the line above if you use the form key
-              child: Center(
-                child: Container(
-                  width: 300,
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        " Type of Work ",
-                        style: Theme.of(context).textTheme.headline6,
+        backgroundColor: Colors.white,
+        body: SafeArea(
+          child: FutureBuilder<List<String>>(
+            future: fetchTypeList(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return Center(child: Text('No data found'));
+              } else {
+                return Form(
+                  //key: _formKey,
+                  child: Center(
+                    child: Container(
+                      width: 300,
+                      padding: const EdgeInsets.all(16.0),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        color: Colors.white,
                       ),
-                      const SizedBox(height: 20),
-                      AutocompleteTextField(
-                        items: snapshot.data!,
-                        selectedItem: _selectedItem,
-                        decoration: const InputDecoration(
-                          labelText: 'Select your Work',
-                          border: OutlineInputBorder(),
-                        ),
-                        onItemSelect: (selected) {
-                          setState(() {
-                            _selectedItem = selected;
-                          });
-                        },
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "Type of Work",
+                            style: Theme.of(context).textTheme.headline6,
+                          ),
+                          const SizedBox(height: 20),
+                          AutocompleteTextField(
+                            items: snapshot.data!,
+                            selectedItem: _selectedItem,
+                            decoration: const InputDecoration(
+                              labelText: 'Select your Work',
+                              border: OutlineInputBorder(),
+                            ),
+                            onItemSelect: (selected) {
+                              setState(() {
+                                _selectedItem = selected;
+                              });
+                            },
+                          ),
+                          const SizedBox(height: 20),
+                          ElevatedButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => BottomNavBar()),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              primary: Colors.white,
+                              onPrimary: Colors.black,
+                              elevation: 5,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              padding: EdgeInsets.symmetric(
+                                  vertical: 12, horizontal: 24),
+                            ),
+                            child: const Text("Continue"),
+                          ),
+                          const SizedBox(height: 20),
+                        ],
                       ),
-                      const SizedBox(height: 20),
-                      ElevatedButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => BottomNavBar()),
-                          );
-                        },
-                        child: const Text("Continue"),
-                      ),
-                      const SizedBox(height: 20),
-                    ],
+                    ),
                   ),
-                ),
-              ),
-            );
-          }
-        },
-      ),
-    );
+                );
+              }
+            },
+          ),
+        ));
   }
 }
 
@@ -120,7 +136,7 @@ class _AutocompleteTextFieldState extends State<AutocompleteTextField> {
 
   Future<void> saveToDatabase(String item) async {
     final response = await http.post(
-      Uri.parse('http://192.168.56.1/flutter_login/save_typelist.php'),
+      Uri.parse('$apiEndpoint/save_typelist.php'),
       body: {'item': item},
     );
     if (response.statusCode != 200) {
@@ -155,10 +171,12 @@ class _AutocompleteTextFieldState extends State<AutocompleteTextField> {
         onChanged: _onFieldChange,
         decoration: widget.decoration?.copyWith(
               labelText: _controller.text.isEmpty ? 'Select your Work' : '',
+              filled: true,
+              fillColor: Colors.grey.shade100,
               suffixIcon: _controller.text.isEmpty
                   ? null
                   : IconButton(
-                      icon: Icon(Icons.clear),
+                      icon: Icon(Icons.clear, color: Colors.grey),
                       onPressed: () {
                         setState(() {
                           _controller.clear();
@@ -166,12 +184,14 @@ class _AutocompleteTextFieldState extends State<AutocompleteTextField> {
                       },
                     ),
             ) ??
-            InputDecoration(
+           InputDecoration(
               labelText: _controller.text.isEmpty ? 'Select your Work' : '',
+              filled: true,
+              fillColor: Colors.grey.shade100,
               suffixIcon: _controller.text.isEmpty
                   ? null
                   : IconButton(
-                      icon: Icon(Icons.clear),
+                      icon: Icon(Icons.clear, color: Colors.grey),
                       onPressed: () {
                         setState(() {
                           _controller.clear();

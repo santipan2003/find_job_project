@@ -25,12 +25,9 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
       theme: ThemeData(
-        colorScheme:
-            ColorScheme.fromSeed(seedColor: Color.fromARGB(255, 89, 6, 245)),
         useMaterial3: true,
-        primarySwatch: Colors.blue,
       ),
-      home: BottomNavBar(),
+      home: login(),
       routes: {
         'register': (context) => const register(),
         'home': (context) => const homepage(),

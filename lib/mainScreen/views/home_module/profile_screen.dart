@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_login/api.dart';
+import 'package:flutter_login/mainScreen/controllers/profile_screen_controller.dart';
 import 'package:flutter_login/mainScreen/views/home_module/chat_screen.dart';
 import 'package:flutter_login/mainScreen/views/home_module/edit_profie_screen.dart';
+import 'package:get/get.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
@@ -15,9 +18,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   late Future<String?> typeOfWorkFuture;
   late Future<String?> talentFuture;
 
+  final _profileController = Get.find<ProfileScreenController>();
+
   Future<String> fetchSelectedUniversity() async {
     final response = await http
-        .get(Uri.parse('http://192.168.56.1/flutter_login/user_info.php'));
+        .get(Uri.parse('$apiEndpoint/user_info.php'));
     if (response.statusCode == 200) {
       Map<String, dynamic> jsonResponse = json.decode(response.body);
       return jsonResponse["university"];
@@ -28,7 +33,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<String?> fetchUsernameFromServer() async {
     final response = await http
-        .get(Uri.parse('http://192.168.56.1/flutter_login/user_info.php'));
+        .get(Uri.parse('$apiEndpoint/user_info.php'));
     if (response.statusCode == 200) {
       try {
         Map<String, dynamic> jsonResponse = json.decode(response.body);
@@ -48,7 +53,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<String?> fetchLastAddedTypeOfWork() async {
     final response = await http
-        .get(Uri.parse('http://192.168.56.1/flutter_login/user_info.php'));
+        .get(Uri.parse('$apiEndpoint/user_info.php'));
     if (response.statusCode == 200) {
       try {
         Map<String, dynamic> jsonResponse = json.decode(response.body);
@@ -66,7 +71,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<String?> fetchTalentFromServer() async {
     final response = await http
-        .get(Uri.parse('http://192.168.56.1/flutter_login/user_info.php'));
+        .get(Uri.parse('$apiEndpoint/user_info.php'));
     if (response.statusCode == 200) {
       try {
         Map<String, dynamic> jsonResponse = json.decode(response.body);
@@ -91,6 +96,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
     talentFuture = fetchTalentFromServer();
   }
 
+  void _updateProfileData(Map<String, String> newData) {
+    setState(() {
+      // Update the values with the new data
+      usernameFuture = Future<String>.value(newData['name']);
+      universityNameFuture = Future<String>.value(newData['university']);
+      typeOfWorkFuture = Future<String>.value(newData['type']);
+    });
+    _profileController.updateName(newData['name'] ?? "ชื่อใหม่");
+    _profileController.updateType(newData['type'] ?? "ประเภทใหม่");
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -102,8 +118,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               SizedBox(height: 50.0),
               CircleAvatar(
                 radius: 70.0,
+                backgroundColor: Colors.grey.shade200,
                 backgroundImage: NetworkImage(
-                    'https://cdn.nba.com/headshots/nba/latest/1040x760/2544.png'),
+                    'https://sv1.ap-rup.com/2023/08/27/259265130_1021835818596931_7462365712314598608_n.jpeg'),
               ),
               SizedBox(height: 10.0),
               FutureBuilder<String?>(
@@ -126,64 +143,155 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 },
               ),
               SizedBox(height: 10.0),
-              FutureBuilder<String?>(
-                future: universityNameFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.done) {
-                    if (snapshot.hasError) {
-                      return Text("Error fetching university name");
-                    }
-                    return Text(
-                      ': ${snapshot.data ?? "No University Name"}',
-                      style: TextStyle(
-                        fontSize: 18.0,
-                      ),
-                    );
-                  } else {
-                    return CircularProgressIndicator();
-                  }
-                },
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  SizedBox(width: 50.0),
+                  Icon(
+                    Icons
+                        .school, // Example icon for university. You can use any other icon if you prefer.
+                    color:
+                        Colors.grey, // Choose the color that suits your design.
+                  ),
+                  SizedBox(
+                      width:
+                          5.0), // Adds a little space between the icon and the text.
+                  Expanded(
+                    child: FutureBuilder<String?>(
+                      future: universityNameFuture,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.done) {
+                          if (snapshot.hasError) {
+                            return Text("Error fetching university name");
+                          }
+                          return Text(
+                            ': ${snapshot.data ?? "No University Name"}',
+                            style: TextStyle(
+                              fontSize: 18.0,
+                            ),
+                          );
+                        } else {
+                          return CircularProgressIndicator();
+                        }
+                      },
+                    ),
+                  ),
+                ],
               ),
+
               SizedBox(height: 0.0),
-              FutureBuilder<String?>(
-                future: typeOfWorkFuture, // ใช้ Future ของ typeOfWork
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.done) {
-                    if (snapshot.hasError) {
-                      return Text("Error fetching type of work");
-                    }
-                    return Text(
-                      ': ${snapshot.data ?? "No Type of Work"}',
-                      style: TextStyle(
-                        fontSize: 18.0,
-                      ),
-                    );
-                  } else {
-                    return CircularProgressIndicator();
-                  }
-                },
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  SizedBox(width: 50.0),
+                  Icon(
+                    Icons.work, // Icon representing work.
+                    color: Colors
+                        .grey, // You can customize the color as per your design.
+                  ),
+                  SizedBox(
+                      width:
+                          5.0), // Provides some space between the icon and the text.
+                  Expanded(
+                    child: FutureBuilder<String?>(
+                      future:
+                          typeOfWorkFuture, // Using the Future for typeOfWork.
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.done) {
+                          if (snapshot.hasError) {
+                            return Text("Error fetching type of work");
+                          }
+                          return Text(
+                            ': ${snapshot.data ?? "No Type of Work"}',
+                            style: TextStyle(
+                              fontSize: 18.0,
+                            ),
+                          );
+                        } else {
+                          return CircularProgressIndicator();
+                        }
+                      },
+                    ),
+                  ),
+                ],
               ),
+
               FutureBuilder<String?>(
                 future: talentFuture,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.done) {
                     if (snapshot.hasError) {
-                      return Text("Error fetching talent");
+                      return Text(
+                        "Error fetching talent",
+                        style: TextStyle(
+                            color: Colors.red.shade600, fontSize: 16.0),
+                      );
+                    } else if (snapshot.data != null &&
+                        snapshot.data!.isNotEmpty) {
+                      List<String> talents = snapshot.data!.split(',');
+                      List<Color> colors = [
+                        Colors.blue.shade700,
+                        Colors.red.shade700,
+                        Colors.green.shade700,
+                        Colors.orange.shade700,
+                        Colors.purple.shade700,
+                        Colors.yellow.shade700,
+                        Colors.pink.shade700,
+                        Colors.teal.shade700,
+                        Colors.brown.shade700,
+                        Colors.deepPurple.shade700,
+                      ];
+
+                      return Align(
+                        alignment: Alignment.center,
+                        child: Container(
+                          padding: EdgeInsets.all(10.0),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(10.0),
+                          ),
+                          child: Wrap(
+                            spacing: 10.0,
+                            runSpacing: 4.0,
+                            alignment: WrapAlignment
+                                .center, // Align the chips to the center
+                            children: talents.asMap().entries.map((entry) {
+                              int idx = entry.key;
+                              String talent = entry.value;
+                              return Chip(
+                                labelPadding:
+                                    EdgeInsets.symmetric(horizontal: 2.0),
+                                label: Text(
+                                  talent.trim(),
+                                  style: TextStyle(
+                                      color: Colors
+                                          .black, // changed color to black
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12.0),
+                                  overflow: TextOverflow.visible,
+                                ),
+                                backgroundColor: Colors.white,
+                              );
+                            }).toList(),
+                          ),
+                        ),
+                      );
                     }
-                    return Text(
-                      ': ${snapshot.data ?? "No Talent"}',
-                      style: TextStyle(
-                        fontSize: 18.0,
-                      ),
-                    );
-                  } else {
-                    return CircularProgressIndicator();
                   }
+                  return SizedBox(
+                    width: 20.0,
+                    height: 20.0,
+                    child: CircularProgressIndicator(
+                      valueColor:
+                          AlwaysStoppedAnimation<Color>(Colors.blue.shade700),
+                      strokeWidth: 2.0,
+                    ),
+                  );
                 },
               ),
-              SizedBox(height: 10.0),
 
-              SizedBox(height: 10.0),
+              SizedBox(height: 0.0),
+
               Row(
                 mainAxisAlignment: MainAxisAlignment
                     .center, // This will center the children horizontally.
@@ -200,42 +308,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       );
 
                       if (result != null) {
-                        setState(() {
-                          usernameFuture = Future.value(result['name']);
-                          universityNameFuture =
-                              Future.value(result['university']);
-                          typeOfWorkFuture = Future.value(result['type']);
-                        });
+                        _updateProfileData(result);
                       }
                     },
-                    child: Text('Setting Profile'),
+                    child: Text('Edit Profile'),
                     style: ElevatedButton.styleFrom(
-                      primary: Colors.blue,
+                      primary: Colors.grey.shade500,
                       onPrimary: Colors.white,
                       padding: EdgeInsets.symmetric(
-                          horizontal: 20.0,
-                          vertical: 12.0), // Added padding for aesthetics.
+                          horizontal: 20.0, vertical: 12.0),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20.0),
+                      ),
+                      elevation: 5.0,
                     ),
                   ),
+
                   SizedBox(
                       width:
                           20.0), // This will give a horizontal space between the buttons
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => ChatScreen()),
-                      );
-                    },
-                    child: Text('Message'),
-                    style: ElevatedButton.styleFrom(
-                      primary: Colors.blue,
-                      onPrimary: Colors.white,
-                      padding: EdgeInsets.symmetric(
-                          horizontal: 20.0,
-                          vertical: 12.0), // Added padding for aesthetics.
-                    ),
-                  ),
                 ],
               ),
 

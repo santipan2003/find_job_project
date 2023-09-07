@@ -16,24 +16,45 @@ class _TimeScreenState extends State<TimeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: Form(
         key: _formKey,
         child: Center(
           child: Container(
             width: 300,
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.all(16.0),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.3),
+                  spreadRadius: 1,
+                  blurRadius: 5,
+                  offset: Offset(0, 3),
+                ),
+              ],
+            ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  " Select the Date ",
-                  style: Theme.of(context).textTheme.headline6,
+                  "Select the Date",
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black87,
+                  ),
                 ),
                 const SizedBox(height: 20),
                 ElevatedButton(
-                  onPressed: () {
-                    _selectDate(context);
-                  },
+                  onPressed: () => _selectDate(context),
+                  style: ElevatedButton.styleFrom(
+                    primary: Colors.teal, // Background color
+                    onPrimary: Colors.white, // Text color
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
                   child: const Text("Select Date"),
                 ),
                 if (_selectedDate != null) ...[
@@ -56,6 +77,13 @@ class _TimeScreenState extends State<TimeScreen> {
                     }
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
                   },
+                  style: ElevatedButton.styleFrom(
+                    primary: Colors.teal, // Background color
+                    onPrimary: Colors.white, // Text color
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
                   child: const Text("Continue"),
                 )
               ],

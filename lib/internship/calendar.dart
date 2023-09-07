@@ -22,7 +22,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => TypeListScreen(), // Replace 'TypeListPage()' with the actual widget for the Type List page.
+        builder: (context) => TypeListScreen(),
       ),
     );
   }
@@ -30,6 +30,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: AnimationLimiter(
         child: Form(
           key: _formKey,
@@ -37,6 +38,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
             child: Container(
               width: 300,
               padding: const EdgeInsets.all(16.0),
+              decoration: BoxDecoration(
+                color: Colors.white, // ใส่สีขาวให้กับ Container
+                borderRadius: BorderRadius.circular(10),
+              
+              ),
               child: AnimationConfiguration.staggeredList(
                 position: 0,
                 duration: const Duration(milliseconds: 500),
@@ -54,7 +60,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         children: [
                           Text(
                             "Select Time to Internship",
-                            style: Theme.of(context).textTheme.headline6,
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.black87,
+                            ),
                           ),
                           const SizedBox(height: 20),
                           Stack(
@@ -62,11 +72,29 @@ class _CalendarScreenState extends State<CalendarScreen> {
                               TextFormField(
                                 decoration: InputDecoration(
                                   labelText: 'Select Time',
-                                  border: OutlineInputBorder(),
+                                  labelStyle: TextStyle(
+                                      color:
+                                          Colors.black54), // เปลี่ยนสีของ label
+                                  hintStyle: TextStyle(
+                                      color:
+                                          Colors.black38), // เปลี่ยนสีของ hint
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                    borderSide: BorderSide(
+                                      color: Colors.grey[
+                                          300]!, // เปลี่ยนสีของขอบเป็นสีเทาอ่อน
+                                    ),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                    borderSide: BorderSide(
+                                      color: Colors.black,
+                                      width:
+                                          2, // เพิ่มความหนาของขอบเมื่อ focused
+                                    ),
+                                  ),
                                 ),
                                 validator: (val) {
-                                  // Add your validation logic here if needed
-                                  // Return null if the value is valid, or an error message string if invalid.
                                   return null;
                                 },
                                 onChanged: (val) {
@@ -77,9 +105,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                 controller: _dateRangeController,
                               ),
                               Positioned(
-                                right: 0,
-                                top: 0,
-                                bottom: 0,
+                                right: 10,
+                                top: 15,
                                 child: InkWell(
                                   onTap: () {
                                     showCustomDateRangePicker(
@@ -87,13 +114,16 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                       dismissible: true,
                                       endDate: endDate,
                                       startDate: startDate,
-                                      maximumDate: DateTime.now().add(const Duration(days: 365)),
-                                      minimumDate: DateTime.now().subtract(const Duration(days: 365)),
+                                      maximumDate: DateTime.now()
+                                          .add(const Duration(days: 365)),
+                                      minimumDate: DateTime.now()
+                                          .subtract(const Duration(days: 365)),
                                       onApplyClick: (s, e) {
                                         setState(() {
                                           startDate = s;
                                           endDate = e;
-                                          _dateRangeController.text = '${startDate != null ? DateFormat("dd, MMM").format(startDate!) : '-'} / ${endDate != null ? DateFormat("dd, MMM").format(endDate!) : '-'}';
+                                          _dateRangeController.text =
+                                              '${startDate != null ? DateFormat("dd, MMM").format(startDate!) : '-'} / ${endDate != null ? DateFormat("dd, MMM").format(endDate!) : '-'}';
                                         });
                                       },
                                       onCancelClick: () {
@@ -103,18 +133,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                           _dateRangeController.clear();
                                         });
                                       },
-                                      primaryColor: Colors.black, // Add primaryColor argument
-                                      backgroundColor: Colors.white, // Add backgroundColor argument
+                                      primaryColor: Colors.black,
+                                      backgroundColor: Colors.white,
                                     );
                                   },
-                                  child: Container(
-                                    padding: const EdgeInsets.all(8),
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey[200], // Change the button color to gray
-                                      borderRadius: BorderRadius.circular(10.0), // Rounded rectangle shape
-                                    ),
-                                    child: Icon(Icons.calendar_month_outlined, color: Colors.black),
-                                  ),
+                                  child: Icon(Icons.calendar_month_outlined,
+                                      color: Colors.black),
                                 ),
                               ),
                             ],
@@ -127,9 +151,28 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                 message = 'Form valid';
                                 _navigateToTypeListPage();
                               }
-                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text(message)));
                             },
-                            child: const Text("Continue"),
+                            style: ElevatedButton.styleFrom(
+                              primary: Colors.white,
+                              onPrimary: Colors.black,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 50,
+                                  vertical:
+                                      12), // เพิ่ม padding ให้ปุ่มใหญ่ขึ้น
+                              elevation: 5, // เพิ่มเงาให้ปุ่ม
+                            ),
+                            child: const Text(
+                              "Continue",
+                              style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight
+                                      .bold), // ให้ตัวอักษรในปุ่มใหญ่ขึ้นและหนาขึ้น
+                            ),
                           ),
                           const SizedBox(height: 40),
                         ],

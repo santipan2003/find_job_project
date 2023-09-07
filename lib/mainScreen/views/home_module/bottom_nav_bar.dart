@@ -1,3 +1,4 @@
+import 'package:flutter_login/mainScreen/views/home_module/edit_profie_screen.dart';
 import 'package:flutter_login/mainScreen/views/home_module/matches_screen.dart';
 import 'package:flutter_login/mainScreen/views/home_module/profile_screen.dart';
 import 'package:flutter/material.dart';
@@ -13,7 +14,7 @@ class BottomNavBar extends StatelessWidget {
   final screens = [
      HomeScreen(),
      MatchesScreen(),
-    const ChatScreen(),
+    
     ProfileScreen(),
   ];
 
@@ -45,15 +46,11 @@ class BottomNavBar extends StatelessWidget {
               //  backgroundColor: darkGreen,
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.favorite),
-              label: "Match",
+              icon: Icon(Icons.chat),
+              label: "Chat",
               //  backgroundColor: darkPink,
             ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.chat_bubble_outlined),
-              label: "Chat",
-              // backgroundColor: darkblue,
-            ),
+            
             BottomNavigationBarItem(
               icon: Icon(Icons.person_pin),
               label: "Profile",

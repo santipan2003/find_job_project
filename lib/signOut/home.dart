@@ -16,7 +16,7 @@ class _homepageState extends State<homepage> {
     await User.setSignin(false);
     Navigator.pushNamed(context, 'login');
   }
-
+  
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xFFF5F5F5),

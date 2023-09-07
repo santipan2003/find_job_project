@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_login/api.dart';
 import 'package:flutter_login/login/login.dart';
 import 'dart:async';
 import 'package:http/http.dart' as http;
@@ -21,9 +22,9 @@ class _registerState extends State<register> {
   TextEditingController email = TextEditingController();
 
   Future<void> sign_up() async {
-    String url = "http://192.168.56.1/flutter_login/register.php";
+    String url = "$apiEndpoint/register.php";
     String saveUsernameUrl =
-        "http://192.168.56.1/flutter_login/save_username.php";
+        "$apiEndpoint/save_username.php";
 
     try {
       final response = await http.post(Uri.parse(url), body: {
@@ -76,149 +77,123 @@ class _registerState extends State<register> {
 
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFF5F5F5),
-      body: Center(
-        child: Form(
-          key: formKey,
-          child: ListView(
-            shrinkWrap: true,
-            children: [
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  const Text(
-                    'Sign Up',
-                    style: TextStyle(fontSize: 50, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(
-                    height: 20,
-                  ),
-                  const Text(
-                    'Please complete your',
-                    style: TextStyle(fontSize: 20),
-                  ),
-                  const Text(
-                    'biodata correctly',
-                    style: TextStyle(fontSize: 20),
-                  ),
-                  const SizedBox(
-                    height: 30,
-                  ),
-                  SizedBox(
-                    width: 350,
-                    child: TextFormField(
-                      obscureText: false,
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(),
-                        labelText: 'Your name',
-                      ),
-                      validator: (val) {
-                        if (val!.isEmpty) {
-                          return 'Empty';
-                        }
-                        return null;
-                      },
-                      controller: name,
+      backgroundColor: Colors.white,
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Form(
+            key: formKey,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                 // Your logo
+                const SizedBox(height: 175),
+                const Text(
+                  'Sign Up',
+                  style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  'Please complete your details below',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 18),
+                ),
+                const SizedBox(height: 30),
+                TextFormField(
+                  controller: name,
+                  decoration: InputDecoration(
+                    contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(5),
+                      borderSide: BorderSide.none,
                     ),
+                    filled: true,
+                    fillColor: Color(0xFFFAFAFA),
+                    hintText: 'Your name',
                   ),
-                  const SizedBox(
-                    height: 20,
-                  ),
-                  SizedBox(
-                    width: 350,
-                    child: TextFormField(
-                      obscureText: false,
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(),
-                        labelText: 'Your E-Mail',
-                      ),
-                      validator: (val) {
-                        if (val!.isEmpty) {
-                          return 'Empty';
-                        }
-                        return null;
-                      },
-                      controller: email,
+                  validator: (val) => val!.isEmpty ? 'Empty' : null,
+                ),
+                const SizedBox(height: 15),
+                TextFormField(
+                  controller: email,
+                  decoration: InputDecoration(
+                    contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(5),
+                      borderSide: BorderSide.none,
                     ),
+                    filled: true,
+                    fillColor: Color(0xFFFAFAFA),
+                    hintText: 'Your E-Mail',
                   ),
-                  const SizedBox(
-                    height: 20,
-                  ),
-                  SizedBox(
-                    width: 350,
-                    child: TextFormField(
-                      obscureText: true,
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(),
-                        labelText: 'Create your Password',
-                      ),
-                      validator: (val) {
-                        if (val!.isEmpty) {
-                          return 'Empty';
-                        }
-                        return null;
-                      },
-                      controller: password,
+                  validator: (val) => val!.isEmpty ? 'Empty' : null,
+                ),
+                const SizedBox(height: 15),
+                TextFormField(
+                  controller: password,
+                  obscureText: true,
+                  decoration: InputDecoration(
+                    contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(5),
+                      borderSide: BorderSide.none,
                     ),
+                    filled: true,
+                    fillColor: Color(0xFFFAFAFA),
+                    hintText: 'Create your Password',
                   ),
-                  const SizedBox(
-                    height: 20,
-                  ),
-                  SizedBox(
-                    width: 350,
-                    child: TextFormField(
-                      obscureText: true,
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(),
-                        labelText: 'Re-Type your Password',
-                      ),
-                      validator: (val) {
-                        if (val!.isEmpty) {
-                          return 'Empty';
-                        } else if (val != password.text) {
-                          return 'password not match';
-                        }
-                        return null;
-                      },
+                  validator: (val) => val!.isEmpty ? 'Empty' : null,
+                ),
+                const SizedBox(height: 15),
+                TextFormField(
+                  obscureText: true,
+                  decoration: InputDecoration(
+                    contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(5),
+                      borderSide: BorderSide.none,
                     ),
+                    filled: true,
+                    fillColor: Color(0xFFFAFAFA),
+                    hintText: 'Re-Type your Password',
                   ),
-                  const SizedBox(
-                    height: 20,
-                  ),
-                  SizedBox(
-                    width: 350,
-                    height: 60,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                          primary: const Color(0xFF3F60A0),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(15))),
-                      onPressed: () {
-                        bool password = formKey.currentState!.validate();
-                        if (password) {
-                          sign_up();
-                          // After signing up, redirect to the login page
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => login()),
-                          );
-                        }
-                      },
-                      child: const Text(
-                        'Sign up',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
+                  validator: (val) {
+                    if (val!.isEmpty) return 'Empty';
+                    if (val != password.text) return 'Passwords do not match';
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 30),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      primary: Colors.black,
+                      padding: EdgeInsets.symmetric(vertical: 15),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(5),
                       ),
                     ),
+                    onPressed: () {
+                      if (formKey.currentState!.validate()) {
+                        sign_up();
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => login()),
+                        );
+                      }
+                    },
+                    child: const Text(
+                      'Sign Up',
+                      style: TextStyle(fontSize: 18, color: Colors.white),
+                    ),
                   ),
-                ],
-              ),
-            ],
+                ),
+              ],
+            ),
           ),
         ),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      ),
     );
   }
 }

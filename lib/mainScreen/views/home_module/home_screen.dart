@@ -1,3 +1,7 @@
+import 'package:flutter_login/api.dart';
+import 'package:flutter_login/mainScreen/controllers/profile_screen_controller.dart';
+import 'package:flutter_login/mainScreen/views/home_module/chat_screen.dart';
+import 'package:flutter_login/mainScreen/views/home_module/match_screen.dart';
 import 'package:flutter_login/mainScreen/views/home_module/swipe_widgets/bottom_button.dart';
 import 'package:flutter_login/mainScreen/views/home_module/swipe_widgets/card_overlay.dart';
 import 'package:flutter/foundation.dart';
@@ -9,26 +13,47 @@ import 'package:http/http.dart' as http;
 import '../../controllers/home_screen_controller.dart';
 import 'swipe_widgets/user_card.dart';
 
-class HomeScreen extends StatelessWidget {
-  HomeScreen({super.key});
-  final _controller = Get.put(HomeScreenController(), permanent: true);
+class HomeScreen extends StatefulWidget {
+  HomeScreen({Key? key}) : super(key: key);
 
-  Future<String?> fetchLastAddedTypeOfWork() async {
+  @override
+  _HomeScreenState createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final _controller = Get.put(HomeScreenController(), permanent: true);
+  final _profileController =
+      Get.put(ProfileScreenController(), permanent: true);
+
+  @override
+  void initState() {
+    super.initState();
+    fetchDataFromServer(); // ดึงข้อมูลเมื่อเริ่มต้นหน้านี้
+  }
+
+  Future<Map<String, String?>> fetchDataFromServer() async {
     final response = await http
-        .get(Uri.parse('http://192.168.56.1/flutter_login/user_info.php'));
+        .get(Uri.parse('$apiEndpoint/user_info.php'));
     if (response.statusCode == 200) {
       try {
         Map<String, dynamic> jsonResponse = json.decode(response.body);
-        if (jsonResponse.containsKey("type")) {
-          return jsonResponse["type"];
-        } else if (jsonResponse.containsKey("error")) {
-          print("Error from server: ${jsonResponse["error"]}");
-        }
+        print("Entire JSON response: $jsonResponse");
+
+        // Storing the values into the ProfileScreenController.
+        _profileController.updateName(jsonResponse["name"]);
+        _profileController.updateType(jsonResponse["type"]);
+        print(
+            'Stored name in ProfileScreenController: ${_profileController.name.value}');
+        print(
+            'Stored type in ProfileScreenController: ${_profileController.type.value}');
+
+        // Expecting the latest (maximum ID) 'name' and 'type' from user_info.php
+        return {"name": jsonResponse["name"], "type": jsonResponse["type"]};
       } catch (e) {
         print("Error decoding JSON: $e");
       }
     }
-    return null;
+    return {"name": null, "type": null};
   }
 
   @override
@@ -52,8 +77,14 @@ class HomeScreen extends StatelessWidget {
                         height: 50,
                         decoration: BoxDecoration(
                             color: Colors.red, shape: BoxShape.circle),
-                        child: SizedBox(
-                            width: 20, height: 20, child: Icon(Icons.person)),
+                        child: ClipOval(
+                          child: Image.network(
+                            'https://sv1.ap-rup.com/2023/08/27/259265130_1021835818596931_7462365712314598608_n.jpeg',
+                            width: 50,
+                            height: 50,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
                       ),
                       SizedBox(
                         width: 10,
@@ -65,11 +96,28 @@ class HomeScreen extends StatelessWidget {
                             Text(
                               "Good Morning",
                               style: TextStyle(
-                                  fontWeight: FontWeight.w200, fontSize: 14),
+                                fontWeight: FontWeight.w200,
+                                fontSize: 14,
+                              ),
                             ),
-                            Obx(() => Text(_controller.userName.value,
-                                style: TextStyle(
-                                    fontWeight: FontWeight.w500, fontSize: 16)))
+                            Obx(
+                              () {
+                                final nameFromServer =
+                                    _profileController.name.value;
+                                if (nameFromServer != null &&
+                                    nameFromServer.isNotEmpty) {
+                                  return Text(
+                                    'Hello $nameFromServer',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 16,
+                                    ),
+                                  );
+                                } else {
+                                  return Text("No name available");
+                                }
+                              },
+                            ),
                           ],
                         ),
                       ),
@@ -106,62 +154,35 @@ class HomeScreen extends StatelessWidget {
                     if (kDebugMode) {
                       print('$index, $direction');
 
-                      // Assuming each item has a 'title' property, fetch it like this:
                       String? currentItemTitle = _controller.items[index].title;
                       String? currentItemName = _controller.items[index].name;
 
-                      // Fetch talent from server
-                      String? typeFromServer = await fetchLastAddedTypeOfWork();
+                      // Fetch name and type from server using fetchDataFromServer()
+                      String? nameFromServer = _profileController.name.value;
+                      String? typeFromServer = _profileController.type.value;
 
-                      // Print the values
-                      print('Type from server: $typeFromServer');
+                      // Print the values for debugging
+                      print('Latest Name from server: $nameFromServer');
+                      print('Latest Type from server: $typeFromServer');
                       print('Current item title: $currentItemTitle');
 
-                      if (direction == SwipeDirection.right) {
-                        if (typeFromServer == currentItemTitle) {
-                          showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return AlertDialog(
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius:
-                                          BorderRadius.circular(15.0)),
-                                  backgroundColor: Colors.white,
-                                  title: Text(
-                                    'MATCHING',
-                                    style: TextStyle(
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 22,
-                                    ),
-                                  ),
-                                  content: Text(
-                                     'You have Matching With ${currentItemName}!',
-                                    style: TextStyle(
-                                      color: Colors.black,
-                                      fontStyle: FontStyle.italic,
-                                      fontSize: 18,
-                                    ),
-                                  ),
-                                  actions: <Widget>[
-                                    TextButton(
-                                      child: Text(
-                                        'OK',
-                                        style: TextStyle(
-                                          color: Colors.black,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 18,
-                                        ),
-                                      ),
-                                      onPressed: () {
-                                        Navigator.of(context).pop();
-                                      },
-                                    ),
-                                  ],
-                                );
-                              });
+                      if (typeFromServer != null) {
+                        bool isMatched = typeFromServer == currentItemTitle;
+                        _controller.isMatched.value = isMatched;
+
+                        if (isMatched && direction == SwipeDirection.right) {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => MatchScreen(
+                                userName: currentItemName,
+                                userImage: _controller.items[index].image,
+                              ),
+                            ),
+                          );
+
+                          _controller
+                              .addDataToLocalDb(_controller.items[index]);
                         }
-                        _controller.addDataToLocalDb(_controller.items[index]);
                       }
                     }
                   },
@@ -199,7 +220,7 @@ class HomeScreen extends StatelessWidget {
               _controller.stackController.next(swipeDirection: direction);
             },
             onRewindTap: _controller.stackController.rewind,
-            canRewind: _controller.stackController.canRewind,
+            canRewind: true,
           ),
         ],
       ),

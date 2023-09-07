@@ -1,3 +1,4 @@
+import 'package:flutter_login/api.dart';
 import 'package:flutter_login/mainScreen/Utills/helpers/db_repositories/user_repo.dart';
 import 'package:flutter_login/mainScreen/models/user_model.dart';
 import 'package:get/get.dart';
@@ -11,20 +12,20 @@ class HomeScreenController extends GetxController {
   RxList<UserModel> items = RxList();
   RxList<UserModel> localList = RxList();
   var userName = "Loading...".obs;
-  
+  var isMatched = false.obs;
 
   @override
   void onInit() {
     stackController = SwipableStackController();
     _repository = UserRepository();
-     fetchUserName();
+    fetchUserName();
     loadItems();
     super.onInit();
   }
 
   Future<void> fetchUserName() async {
     try {
-      final response = await http.get(Uri.parse('http://192.168.56.1/flutter_login/user_info.php'));
+      final response = await http.get(Uri.parse('$apiEndpoint/user_info.php'));
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         userName.value = data["name"] ?? "Not Found";
@@ -48,7 +49,7 @@ class HomeScreenController extends GetxController {
 
   loadItems() async {
     final response = await http
-        .get(Uri.parse('http://192.168.56.1/flutter_login/getusers.php'));
+        .get(Uri.parse('$apiEndpoint/getusers.php'));
 
     if (response.statusCode == 200) {
       var jsonResponse = jsonDecode(response.body);

@@ -29,6 +29,7 @@ class UserRepository{
       return null;
     }
   }
+
   Future updateUser(int id, UserModel model) async{
     var res = await _database.update(tableName, model.toJson(),
         where: '$id = ?', whereArgs: [id]);

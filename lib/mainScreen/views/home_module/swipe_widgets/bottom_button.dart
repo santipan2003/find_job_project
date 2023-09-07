@@ -31,6 +31,7 @@ class BottomButtonsRow extends StatelessWidget {
                 color: Colors.white ,
                 onPressed: canRewind ? onRewindTap : null,
                 child: const Icon(Icons.swap_vert,size: 35,),
+                
               ),
               _BottomButton(
                 color: Colors.white,

@@ -13,6 +13,7 @@ class BottomNavController extends GetxController{
 
   void changeIndex(int index) {
     selectedIndex.value = index;
+    
     if(selectedIndex.value==1 && Get.isRegistered<HomeScreenController>()){
       Get.find<HomeScreenController>().getLocalData();
 

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_login/api.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:flutter_login/internship/calendar.dart';
@@ -21,25 +22,25 @@ class _InternshipScreenState extends State<InternshipScreen> {
     _fetchTalents();
   }
 
-  Future<void> _saveTalent(String talent) async {
+  Future<void> _saveTalent(List<String> talents) async {
     final response = await http.post(
-      Uri.parse("http://192.168.56.1/flutter_login/save_talent.php"),
+      Uri.parse("$apiEndpoint/save_talent.php"),
       body: {
-        'talent': talent,
+        'talents': jsonEncode(talents),
       },
     );
 
     if (response.statusCode == 200) {
-      print("Successfully saved talent: $talent");
+      print("Successfully saved talents: $talents");
     } else {
       print(
-          "Failed to save talent: $talent. Status code: ${response.statusCode}");
+          "Failed to save talents: $talents. Status code: ${response.statusCode}");
     }
   }
 
   Future<void> _fetchTalents() async {
     final response = await http
-        .get(Uri.parse("http://192.168.56.1/flutter_login/talent.php"));
+        .get(Uri.parse("$apiEndpoint/talent.php"));
 
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
@@ -76,137 +77,187 @@ class _InternshipScreenState extends State<InternshipScreen> {
   void _addTalent(String talent) {
     if (!_selectedTalents.contains(talent) && _selectedTalents.length < 5) {
       setState(() {
-        _saveTalent(talent);
         _selectedTalents.add(talent);
         _autocompleteController.text = talent; // ตั้งค่าใหม่สำหรับ controller
       });
       print("Selected talent: $talent");
       print("All selected talents: $_selectedTalents");
     }
+    if (_selectedTalents.length == 1 ||
+        _selectedTalents.length == 2 ||
+        _selectedTalents.length == 3 ||
+        _selectedTalents.length == 4 ||
+        _selectedTalents.length == 5) {
+      _saveTalent(_selectedTalents); // บันทึกค่าทั้งหมดเมื่อครบ 4 หรือ 5 ค่า
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Form(
-        key: _formKey,
-        child: Center(
-          child: Container(
-            width: 300,
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text("WHAT'S your Talent?",
-                    style: Theme.of(context).textTheme.headline6),
-                SizedBox(height: 20),
-                AutocompleteTextField(
-                  controller: _autocompleteController,
-                  items: _talents
-                      .where((talent) => !_selectedTalents.contains(talent))
-                      .toList(),
-                  decoration: InputDecoration(
-                    labelText: 'Select Talent',
-                    labelStyle: TextStyle(
-                      color:
-                          Colors.black87, // เปลี่ยนความเข้มของข้อความ labelText
-                    ),
-                    border: OutlineInputBorder(
-                      borderSide: BorderSide(
-                        width: 1.0, // เปลี่ยนความหนาของเส้นกรอบ
-                        color: Colors.black87, // เปลี่ยนสีของเส้นกรอบ
-                      ),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(
-                        width: 1.0,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(
-                        width: 1.0,
-                        color: Colors.black87,
-                      ),
-                    ),
-                  ),
-
-                  onItemSelect: (selected) => _addTalent(selected),
-                  initialValue:
-                      _selectedTalents.isNotEmpty ? _selectedTalents.last : '',
-                  // ตั้งค่า initial value เป็น talent ล่าสุดที่ถูกเลือก หรือ empty string ถ้าไม่มีการเลือก
-                ),
-                SizedBox(height: 20),
-                Row(
-                  children: [
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          padding: EdgeInsets.symmetric(
-                              vertical: 15.0, horizontal: 4.0),
-                          textStyle: TextStyle(fontSize: 18),
-                          elevation: 10,
-                          primary: Color.fromARGB(255, 255, 255, 255),
-                        ),
-                        onPressed: _selectedTalents.length >= 5
-                            ? null
-                            : () {
-                                _showTalentsList(context);
-                              },
-                        icon: Icon(Icons.add),
-                        label: Text("Add Talent"),
-                      ),
-                    ),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          padding: EdgeInsets.symmetric(
-                              vertical: 15.0, horizontal: 4.0),
-                          textStyle: TextStyle(fontSize: 18),
-                          elevation: 10,
-                          primary: Colors.white,
-                        ),
-                        onPressed: () {
-                          if (_formKey.currentState?.validate() ?? false) {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => CalendarScreen(),
-                              ),
-                            );
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Form invalid')));
-                          }
-                        },
-                        child: const Text("Continue"),
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 20),
-                if (_selectedTalents.isNotEmpty)
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text("Selected Talents:",
-                          style: TextStyle(fontWeight: FontWeight.bold)),
-                      ListView.builder(
-                        shrinkWrap: true,
-                        itemCount: _selectedTalents.length,
-                        itemBuilder: (context, index) {
-                          return Text(_selectedTalents[index]);
-                        },
-                      ),
-                    ],
-                  ),
-              ],
+    return Theme(
+        data: ThemeData(
+          primaryColor: Colors.white,
+          textTheme: TextTheme(
+            headline6: TextStyle(
+              color: Colors.black,
+              fontSize: 24.0,
+            ),
+            bodyText1: TextStyle(
+              color: Colors.black87,
             ),
           ),
+          elevatedButtonTheme: ElevatedButtonThemeData(
+            style: ElevatedButton.styleFrom(
+              primary: Colors.white,
+              onPrimary: Colors.black, // Text color
+              shadowColor: Colors.grey[400],
+              elevation: 10.0,
+            ),
+          ),
+          inputDecorationTheme: InputDecorationTheme(
+            labelStyle: TextStyle(color: Colors.black87),
+            border: OutlineInputBorder(
+              borderSide: BorderSide(
+                width: 1.0,
+                color: Colors.black87,
+              ),
+            ),
+          ),
+          colorScheme:
+              ColorScheme.fromSwatch().copyWith(secondary: Colors.grey[400]),
         ),
-      ),
-    );
+        child: Scaffold(
+          body: Form(
+            key: _formKey,
+            child: Center(
+              child: Container(
+                width: 300,
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text("WHAT'S your Talent?",
+                        style: Theme.of(context).textTheme.headline6),
+                    SizedBox(height: 20),
+                    AutocompleteTextField(
+                      controller: _autocompleteController,
+                      items: _talents
+                          .where((talent) => !_selectedTalents.contains(talent))
+                          .toList(),
+                      decoration: InputDecoration(
+                        labelText: 'Select Talent',
+                        labelStyle: TextStyle(
+                          color: Colors
+                              .black87, // เปลี่ยนความเข้มของข้อความ labelText
+                        ),
+                        border: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            width: 1.0, // เปลี่ยนความหนาของเส้นกรอบ
+                            color: Colors.black87, // เปลี่ยนสีของเส้นกรอบ
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            width: 1.0,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            width: 1.0,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ),
+
+                      onItemSelect: (selected) => _addTalent(selected),
+                      initialValue: _selectedTalents.isNotEmpty
+                          ? _selectedTalents.last
+                          : '',
+                      // ตั้งค่า initial value เป็น talent ล่าสุดที่ถูกเลือก หรือ empty string ถ้าไม่มีการเลือก
+                    ),
+                    SizedBox(height: 20),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              padding: EdgeInsets.symmetric(
+                                  vertical: 15.0, horizontal: 4.0),
+                              textStyle: TextStyle(fontSize: 18),
+                              elevation: 10,
+                              primary: Color.fromARGB(255, 255, 255, 255),
+                            ),
+                            onPressed: _selectedTalents.length >= 5
+                                ? null
+                                : () {
+                                    _showTalentsList(context);
+                                  },
+                            icon: Icon(Icons.add),
+                            label: Text("Add Talent"),
+                          ),
+                        ),
+                        SizedBox(width: 8),
+                        Expanded(
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              padding: EdgeInsets.symmetric(
+                                  vertical: 15.0, horizontal: 4.0),
+                              textStyle: TextStyle(fontSize: 18),
+                              elevation: 10,
+                              primary: Colors.white,
+                            ),
+                            onPressed: () {
+                              if (_formKey.currentState?.validate() ?? false) {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => CalendarScreen(),
+                                  ),
+                                );
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('Form invalid')));
+                              }
+                            },
+                            child: const Text("Continue"),
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 20),
+                    if (_selectedTalents.isNotEmpty)
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text("Selected Talents:",
+                              style: TextStyle(fontWeight: FontWeight.bold)),
+                          Wrap(
+                            spacing: 100.0, // gap between adjacent chips
+                            runSpacing: 4.0, // gap between lines
+                            children: _selectedTalents.map((talent) {
+                              return Chip(
+                                label: Text(talent),
+                                onDeleted: () {
+                                  setState(() {
+                                    _selectedTalents.remove(talent);
+                                  });
+                                },
+                                deleteIcon: Icon(Icons.close),
+                                deleteIconColor: Colors.redAccent,
+                                deleteButtonTooltipMessage:
+                                    'Remove this talent',
+                              );
+                            }).toList(),
+                          ),
+                        ],
+                      )
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ));
   }
 }
 

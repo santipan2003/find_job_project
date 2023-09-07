@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_login/api.dart';
 import 'package:flutter_login/login/login.dart';
 import 'package:flutter_login/mainScreen/views/home_module/profile_screen.dart';
 import 'package:http/http.dart' as http;
@@ -20,6 +21,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   String? _selectedUniversity;
   String? _selectedTypeOfWork;
   String? _selectedUsername;
+  String? _currentTalent;
+  
 
   // ตัวแปรสำหรับเก็บข้อมูลสำหรับ Dropdowns
   List<String> universities = [];
@@ -31,7 +34,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   Future<String> fetchSelectedUniversity() async {
     final response = await http
-        .get(Uri.parse('http://192.168.56.1/flutter_login/user_info.php'));
+        .get(Uri.parse('$apiEndpoint/user_info.php'));
     if (response.statusCode == 200) {
       Map<String, dynamic> jsonResponse = json.decode(response.body);
       return jsonResponse["university"];
@@ -42,7 +45,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   Future<String?> fetchLastAddedTypeOfWork() async {
     final response = await http
-        .get(Uri.parse('http://192.168.56.1/flutter_login/user_info.php'));
+        .get(Uri.parse('$apiEndpoint/user_info.php'));
     if (response.statusCode == 200) {
       try {
         Map<String, dynamic> jsonResponse = json.decode(response.body);
@@ -60,7 +63,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   Future<String?> fetchUsernameFromServer() async {
     final response = await http
-        .get(Uri.parse('http://192.168.56.1/flutter_login/user_info.php'));
+        .get(Uri.parse('$apiEndpoint/user_info.php'));
     if (response.statusCode == 200) {
       try {
         Map<String, dynamic> jsonResponse = json.decode(response.body);
@@ -80,7 +83,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   Future<bool> _deleteProfile() async {
     final response = await http.post(
-      Uri.parse('http://192.168.56.1/flutter_login/user_info.php'),
+      Uri.parse('$apiEndpoint/user_info.php'),
       body: {
         'delete': 'true',
       },
@@ -97,6 +100,64 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       print('Failed to delete profile. Status code: ${response.statusCode}');
     }
     return false;
+  }
+
+  Future<bool> _updateUserInfo(
+      String name, String type, String university) async {
+    // Ensure that none of the parameters are null or empty before making the request
+    if (name.isEmpty || type.isEmpty || university.isEmpty) {
+      
+      print('One or more values are empty');
+      return false;
+    }
+
+    // Ensure talent is also not empty since the server requires it
+    if (_currentTalent == null) {
+      print("Talent value is empty or not fetched");
+      return false;
+    }
+
+    print('Sending name: $name'); // Debug
+    print('Sending type: $type'); // Debug
+    print('Sending university: $university'); // Debug
+
+    final response = await http.post(
+      Uri.parse('$apiEndpoint/user_info.php'),
+      body: {
+        'name': name,
+        'type': type,
+        'university': university,
+        'talent': _currentTalent!,
+      },
+    );
+
+    print("Server Response: ${response.body}"); // Debug
+
+    if (response.statusCode == 200) {
+      Map<String, dynamic> jsonResponse = json.decode(response.body);
+      if (jsonResponse.containsKey("success")) {
+        return true;
+      } else if (jsonResponse.containsKey("error_post_data")) {
+        print("Error updating profile: ${jsonResponse["error_post_data"]}");
+      } else if (jsonResponse.containsKey("error")) {
+        print("Error updating profile: ${jsonResponse["error"]}");
+      } else {
+        print("Unknown error while updating profile.");
+      }
+    }
+    return false; // Default return value
+  }
+
+  Future<String?> fetchTalent() async {
+    final response = await http
+        .get(Uri.parse('$apiEndpoint/user_info.php'));
+    if (response.statusCode == 200) {
+      Map<String, dynamic> jsonResponse = json.decode(response.body);
+      if (jsonResponse.containsKey("talent")) {
+        return jsonResponse["talent"];
+      }
+    }
+    return null;
   }
 
   @override
@@ -121,6 +182,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         });
       }
     });
+    fetchTalent().then((value) {
+      setState(() {
+        _currentTalent = value;
+      });
+    });
+
     _universitiesFuture = fetchUniversities();
     _typeOfWorksFuture = fetchTypeOfWorks();
   }
@@ -140,7 +207,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   Future<List<String>> fetchUniversities() async {
     final response = await http
-        .get(Uri.parse('http://192.168.56.1/flutter_login/university.php'));
+        .get(Uri.parse('$apiEndpoint/university.php'));
     if (response.statusCode == 200) {
       return List<String>.from(json.decode(response.body));
     } else {
@@ -150,7 +217,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   Future<List<String>> fetchTypeOfWorks() async {
     final response = await http
-        .get(Uri.parse('http://192.168.56.1/flutter_login/typelist.php'));
+        .get(Uri.parse('$apiEndpoint/typelist.php'));
     if (response.statusCode == 200) {
       return List<String>.from(json.decode(response.body));
     } else {
@@ -171,10 +238,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
           onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => ProfileScreen()),
-            );
+            Navigator.pop(context);
           },
         ),
       ),
@@ -192,23 +256,19 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               padding: EdgeInsets.all(16.0),
               children: [
                 // Input สำหรับ Username
-                TextField(
+                TextFormField(
                   controller: _usernameController,
-                  onChanged: (text) {
-                    setState(() {
-                      _selectedUsername = text;
-                    });
-                  },
                   decoration: InputDecoration(
-                    labelText: _selectedUsername != null &&
-                            _selectedUsername!.isNotEmpty
-                        ? _selectedUsername
-                        : null,
-                    hintText: 'Username',
-                    hintStyle: TextStyle(fontWeight: FontWeight.bold),
+                    hintText: '$_selectedUsername',
+                    labelText: 'Username ',
+                    prefixIcon: Icon(Icons.person),
                     border: OutlineInputBorder(),
                   ),
+                  onChanged: (text) {
+                    _selectedUsername = text;
+                  },
                 ),
+
                 SizedBox(height: 16),
                 // Dropdown สำหรับ University
                 DropdownButtonFormField(
@@ -252,24 +312,31 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   ),
                 ),
                 SizedBox(height: 32),
+
                 ElevatedButton(
-                  onPressed: (_selectedUsername != null &&
-                          _selectedTypeOfWork != null &&
-                          _selectedUniversity != null)
-                      ? () {
-                          Navigator.pop(context, {
-                            'name': _selectedUsername!,
-                            'university': _selectedUniversity!,
-                            'type': _selectedTypeOfWork!,
-                          });
-                        }
-                      : null, // this will disable the button if any of the fields are null
+                  onPressed: () async {
+                    bool isUpdated = await _updateUserInfo(
+                      _selectedUsername!,
+                      _selectedTypeOfWork!,
+                      _selectedUniversity!,
+                    );
+
+                    if (isUpdated) {
+                      print("Successfully updated user information");
+
+                      Navigator.pop(context, {
+                        'name': _selectedUsername!,
+                        'type': _selectedTypeOfWork!,
+                        'university': _selectedUniversity!,
+                      });
+                    } else {
+                      print("Error updating user information");
+                    }
+                  },
                   child: Text('Save'),
                 ),
-                SizedBox(height: 0),
-                SizedBox(
-                    height:
-                        16), // เพิ่ม spacing ระหว่างปุ่ม Save และ Delete Profile
+
+                SizedBox(height: 10),
                 ElevatedButton(
                   onPressed: () {
                     // แสดง AlertDialog
@@ -324,7 +391,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   void _saveProfile() async {
     final response = await http.post(
-      Uri.parse('http://192.168.56.1/flutter_login/user_info.php'),
+      Uri.parse('$apiEndpoint/user_info.php'),
       body: {
         'name': _selectedUsername,
         'type': _selectedTypeOfWork,
@@ -334,6 +401,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     if (response.statusCode == 200) {
       Map<String, dynamic> jsonResponse = json.decode(response.body);
+
+      // Print the saved values
+      print("Saved Name: $_selectedUsername");
+      print("Saved Type: $_selectedTypeOfWork");
+      print("Saved University: $_selectedUniversity");
+
       if (jsonResponse.containsKey("error_user_info")) {
         print("Error updating profile: ${jsonResponse["error_user_info"]}");
       } else {

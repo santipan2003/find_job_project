@@ -19,18 +19,16 @@ class EtnScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(name),
-        backgroundColor: Colors.deepPurpleAccent,
+        title: Text(
+          name,
+          style: TextStyle(color: Colors.black),
+        ),
+        backgroundColor: Colors.white,
+        iconTheme: IconThemeData(color: Colors.black),
         elevation: 0.0,  // Remove shadow
       ),
       body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Colors.deepPurple, Colors.blueAccent],
-          ),
-        ),
+        color: Colors.white,
         child: Stack(
           children: [
             Align(
@@ -41,33 +39,54 @@ class EtnScreen extends StatelessWidget {
                   children: [
                     CircleAvatar(
                       radius: 70,
-                      backgroundColor: Colors.white,
+                      backgroundColor: Colors.grey[200],
                       backgroundImage: NetworkImage(assetPath),
                     ),
                     SizedBox(height: 20),
-                    Text(
-                      ': $name',
-                      style: TextStyle(
-                        fontSize: 24,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    Row(  // Row for name
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // company icon
+                        SizedBox(width: 8),
+                        Text(
+                          '$name',
+                          style: TextStyle(
+                            fontSize: 24,
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
                     SizedBox(height: 10),
-                    Text(
-                      'FIND: $title',
-                      style: TextStyle(
-                        fontSize: 20,
-                        color: Colors.white70,
-                      ),
+                    Row(  // Row for title
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.search, color: Colors.black54,),  // work icon
+                        SizedBox(width: 8),
+                        Text(
+                          ': $title',
+                          style: TextStyle(
+                            fontSize: 20,
+                            color: Colors.black54,
+                          ),
+                        ),
+                      ],
                     ),
                     SizedBox(height: 10),
-                    Text(
-                      'Location: $location',
-                      style: TextStyle(
-                        fontSize: 20,
-                        color: Colors.white70,
-                      ),
+                    Row(  // Row for location
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.location_on, color: Colors.black54,),  // location icon
+                        SizedBox(width: 8),
+                        Text(
+                          ': $location',
+                          style: TextStyle(
+                            fontSize: 20,
+                            color: Colors.black54,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),

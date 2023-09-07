@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_login/api.dart';
 import 'package:flutter_login/internship/internship.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -18,7 +19,7 @@ class _UniversityScreenState extends State<UniversityScreen> {
 
   Future<void> saveUniversity(String university) async {
     final response = await http.post(
-      Uri.parse('http://192.168.56.1/flutter_login/save_university.php'),
+      Uri.parse('$apiEndpoint/save_university.php'),
       body: {
         'university': university,
       },
@@ -49,6 +50,7 @@ class _UniversityScreenState extends State<UniversityScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      
       body: Form(
         key: _formKey,
         child: Center(
@@ -102,6 +104,9 @@ class _UniversityScreenState extends State<UniversityScreen> {
                     ScaffoldMessenger.of(context)
                         .showSnackBar(SnackBar(content: Text(message)));
                   },
+                  style: ElevatedButton.styleFrom(
+                    onPrimary: Colors.black,
+                  ),
                   child: const Text("Continue"),
                 )
               ],
@@ -114,7 +119,7 @@ class _UniversityScreenState extends State<UniversityScreen> {
 
   Future<List<String>> fetchUniversities() async {
     final response = await http
-        .get(Uri.parse('http://192.168.56.1/flutter_login/university.php'));
+        .get(Uri.parse('$apiEndpoint/university.php'));
 
     if (response.statusCode == 200) {
       List<dynamic> jsonResponse = json.decode(response.body);
